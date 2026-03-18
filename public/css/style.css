@@ -602,21 +602,33 @@ button {
 }
 
 .player-image {
-    height: 200px;
-    background: linear-gradient(135deg, var(--color-gray) 0%, var(--color-dark-gray) 100%);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+  height: 200px;
+  background: linear-gradient(135deg, var(--color-gray) 0%, var(--color-dark-gray) 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  }
 
-.player-image::before {
-    content: '';
-    width: 80px;
-    height: 80px;
-    background: url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/222-GKtyNvT90SRGeOg1lwQUpSvoTmtwaH.png') center/contain no-repeat;
-    opacity: 0.3;
-}
+.player-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-normal);
+  }
+
+.player-card:hover .player-avatar {
+  transform: scale(1.05);
+  }
+  
+.player-image:not(:has(.player-avatar))::before {
+  content: '';
+  width: 80px;
+  height: 80px;
+  background: url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/222-GKtyNvT90SRGeOg1lwQUpSvoTmtwaH.png') center/contain no-repeat;
+  opacity: 0.3;
+  }
 
 .player-tier {
     position: absolute;
