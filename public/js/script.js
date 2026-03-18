@@ -1,3 +1,46 @@
+// ===== Sound Effects System =====
+const optionSound = new Audio('/sounds/options-sound.mp3');
+optionSound.volume = 0.5;
+
+function playOptionSound() {
+    optionSound.currentTime = 0;
+    optionSound.play().catch(() => {});
+}
+
+// Add sound effects to all interactive elements
+function initSoundEffects() {
+    // Buttons
+    document.querySelectorAll('.btn, button, .quantity-btn').forEach(btn => {
+        btn.addEventListener('click', playOptionSound);
+    });
+    
+    // Navigation links
+    document.querySelectorAll('.nav-list a, .mobile-nav-list a, .footer-links a').forEach(link => {
+        link.addEventListener('click', playOptionSound);
+    });
+    
+    // Cart icon
+    const cartIcon = document.querySelector('.cart-icon');
+    if (cartIcon) {
+        cartIcon.addEventListener('click', playOptionSound);
+    }
+    
+    // Select elements
+    document.querySelectorAll('select').forEach(select => {
+        select.addEventListener('change', playOptionSound);
+    });
+    
+    // Input focus
+    document.querySelectorAll('input, textarea').forEach(input => {
+        input.addEventListener('focus', playOptionSound);
+    });
+    
+    // Product cards
+    document.querySelectorAll('.product-card, .player-card, .tournament-card').forEach(card => {
+        card.addEventListener('click', playOptionSound);
+    });
+}
+
 // ===== Mobile Menu Toggle =====
 const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
 const mobileMenu = document.querySelector('.mobile-menu');
@@ -286,6 +329,67 @@ async function sendToDiscord(webhookUrl, embed) {
     }
 }
 
+// ===== ViaCEP API Integration =====
+async function searchCEP(cep) {
+    const cleanCEP = cep.replace(/\D/g, '');
+    
+    if (cleanCEP.length !== 8) {
+        return null;
+    }
+    
+    try {
+        const response = await fetch(`https://viacep.com.br/ws/${cleanCEP}/json/`);
+        const data = await response.json();
+        
+        if (data.erro) {
+            return null;
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar CEP:', error);
+        return null;
+    }
+}
+
+async function handleCEPInput(event) {
+    const cepInput = event.target;
+    const cep = cepInput.value;
+    
+    // Format CEP
+    const cleanCEP = cep.replace(/\D/g, '');
+    if (cleanCEP.length <= 5) {
+        cepInput.value = cleanCEP;
+    } else {
+        cepInput.value = cleanCEP.slice(0, 5) + '-' + cleanCEP.slice(5, 8);
+    }
+    
+    if (cleanCEP.length === 8) {
+        const addressData = await searchCEP(cleanCEP);
+        
+        if (addressData) {
+            const streetInput = document.getElementById('checkout-street');
+            const neighborhoodInput = document.getElementById('checkout-neighborhood');
+            const cityInput = document.getElementById('checkout-city');
+            const stateInput = document.getElementById('checkout-state');
+            
+            if (streetInput) streetInput.value = addressData.logradouro || '';
+            if (neighborhoodInput) neighborhoodInput.value = addressData.bairro || '';
+            if (cityInput) cityInput.value = addressData.localidade || '';
+            if (stateInput) stateInput.value = addressData.uf || '';
+            
+            // Focus on number field
+            const numberInput = document.getElementById('checkout-number');
+            if (numberInput) numberInput.focus();
+            
+            playOptionSound();
+            showNotification('Endereco encontrado!');
+        } else {
+            showNotification('CEP nao encontrado. Preencha manualmente.');
+        }
+    }
+}
+
 // ===== Handle Checkout Form Submission =====
 async function handleCheckout(event) {
     event.preventDefault();
@@ -303,7 +407,14 @@ async function handleCheckout(event) {
         name: document.getElementById('checkout-name').value,
         email: document.getElementById('checkout-email').value,
         whatsapp: document.getElementById('checkout-whatsapp').value,
-        cpf: document.getElementById('checkout-cpf').value
+        cpf: document.getElementById('checkout-cpf').value,
+        cep: document.getElementById('checkout-cep')?.value || '',
+        street: document.getElementById('checkout-street')?.value || '',
+        number: document.getElementById('checkout-number')?.value || '',
+        complement: document.getElementById('checkout-complement')?.value || '',
+        neighborhood: document.getElementById('checkout-neighborhood')?.value || '',
+        city: document.getElementById('checkout-city')?.value || '',
+        state: document.getElementById('checkout-state')?.value || ''
     };
     
     // Get cart data
@@ -320,57 +431,67 @@ async function handleCheckout(event) {
         `- ${item.name} x${item.quantity} - R$ ${(item.price * item.quantity).toFixed(2)}`
     ).join('\n');
     
-    // Create Discord embed for order
-    const orderEmbed = {
-        title: '🛒 Novo Pedido Recebido!',
-        color: 0x44ff00, // Green color
-        fields: [
-            {
-                name: '📋 Pedido',
-                value: `\`${orderId}\``,
-                inline: true
-            },
-            {
-                name: '💰 Total',
-                value: `R$ ${total.toFixed(2)}`,
-                inline: true
-            },
-            {
-                name: '🚚 Frete',
-                value: shipping === 0 ? 'Gratis' : `R$ ${shipping.toFixed(2)}`,
-                inline: true
-            },
-            {
-                name: '👤 Cliente',
-                value: customerData.name,
-                inline: true
-            },
-            {
-                name: '📧 E-mail',
-                value: customerData.email,
-                inline: true
-            },
-            {
-                name: '📱 WhatsApp',
-                value: customerData.whatsapp,
-                inline: true
-            },
-            {
-                name: '🪪 CPF',
-                value: customerData.cpf,
-                inline: true
-            },
-            {
-                name: '📦 Itens do Pedido',
-                value: itemsList || 'Nenhum item',
-                inline: false
-            }
-        ],
-        footer: {
-            text: 'RAZOR Shop - Sistema de Pedidos'
-        },
-        timestamp: new Date().toISOString()
-    };
+// Create address string
+const addressStr = customerData.street 
+    ? `${customerData.street}, ${customerData.number}${customerData.complement ? ' - ' + customerData.complement : ''}\n${customerData.neighborhood} - ${customerData.city}/${customerData.state}\nCEP: ${customerData.cep}`
+    : 'Nao informado';
+
+// Create Discord embed for order
+const orderEmbed = {
+  title: '🛒 Novo Pedido Recebido!',
+  color: 0x44ff00, // Green color
+  fields: [
+  {
+  name: '📋 Pedido',
+  value: `\`${orderId}\``,
+  inline: true
+  },
+  {
+  name: '💰 Total',
+  value: `R$ ${total.toFixed(2)}`,
+  inline: true
+  },
+  {
+  name: '🚚 Frete',
+  value: shipping === 0 ? 'Gratis' : `R$ ${shipping.toFixed(2)}`,
+  inline: true
+  },
+  {
+  name: '👤 Cliente',
+  value: customerData.name,
+  inline: true
+  },
+  {
+  name: '📧 E-mail',
+  value: customerData.email,
+  inline: true
+  },
+  {
+  name: '📱 WhatsApp',
+  value: customerData.whatsapp,
+  inline: true
+  },
+  {
+  name: '🪪 CPF',
+  value: customerData.cpf,
+  inline: true
+  },
+  {
+  name: '📍 Endereco de Entrega',
+  value: addressStr,
+  inline: false
+  },
+  {
+  name: '📦 Itens do Pedido',
+  value: itemsList || 'Nenhum item',
+  inline: false
+  }
+  ],
+  footer: {
+  text: 'RAZOR Shop - Sistema de Pedidos'
+  },
+  timestamp: new Date().toISOString()
+  };
     
     // Send to Discord
     const success = await sendToDiscord(DISCORD_WEBHOOKS.orders, orderEmbed);
@@ -494,4 +615,12 @@ async function handleJoinSubmit(event) {
 document.addEventListener('DOMContentLoaded', () => {
     updateCartCount();
     renderCart();
+    initSoundEffects();
 });
+
+// Re-initialize sound effects when content changes dynamically
+const observer = new MutationObserver(() => {
+    initSoundEffects();
+});
+
+observer.observe(document.body, { childList: true, subtree: true });
