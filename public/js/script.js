@@ -1,43 +1,63 @@
 // ===== Sound Effects System =====
 const optionSound = new Audio('/sounds/options-sound.mp3');
 optionSound.volume = 0.5;
+optionSound.preload = 'auto';
 
 function playOptionSound() {
-    optionSound.currentTime = 0;
-    optionSound.play().catch(() => {});
+    // Clone the audio to allow overlapping sounds
+    const sound = optionSound.cloneNode();
+    sound.volume = 0.5;
+    sound.play().catch(() => {});
 }
+
+// Track elements that already have sound attached
+const soundAttached = new WeakSet();
 
 // Add sound effects to all interactive elements
 function initSoundEffects() {
-    // Buttons
-    document.querySelectorAll('.btn, button, .quantity-btn').forEach(btn => {
-        btn.addEventListener('click', playOptionSound);
-    });
+    // All clickable elements
+    const clickableSelectors = [
+        '.btn', 
+        'button', 
+        '.quantity-btn',
+        '.nav-list a', 
+        '.mobile-nav-list a', 
+        '.footer-links a',
+        '.social-links a',
+        '.cart-icon',
+        '.logo',
+        '.product-card', 
+        '.player-card', 
+        '.tournament-card',
+        '.hof-card',
+        '.mobile-menu-btn',
+        '[onclick]',
+        'a[href]'
+    ];
     
-    // Navigation links
-    document.querySelectorAll('.nav-list a, .mobile-nav-list a, .footer-links a').forEach(link => {
-        link.addEventListener('click', playOptionSound);
+    clickableSelectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+            if (!soundAttached.has(el)) {
+                el.addEventListener('click', playOptionSound);
+                soundAttached.add(el);
+            }
+        });
     });
-    
-    // Cart icon
-    const cartIcon = document.querySelector('.cart-icon');
-    if (cartIcon) {
-        cartIcon.addEventListener('click', playOptionSound);
-    }
     
     // Select elements
     document.querySelectorAll('select').forEach(select => {
-        select.addEventListener('change', playOptionSound);
+        if (!soundAttached.has(select)) {
+            select.addEventListener('change', playOptionSound);
+            soundAttached.add(select);
+        }
     });
     
     // Input focus
     document.querySelectorAll('input, textarea').forEach(input => {
-        input.addEventListener('focus', playOptionSound);
-    });
-    
-    // Product cards
-    document.querySelectorAll('.product-card, .player-card, .tournament-card').forEach(card => {
-        card.addEventListener('click', playOptionSound);
+        if (!soundAttached.has(input)) {
+            input.addEventListener('focus', playOptionSound);
+            soundAttached.add(input);
+        }
     });
 }
 

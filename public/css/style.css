@@ -655,12 +655,25 @@ button {
     padding: 25px;
 }
 
+.player-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
 .player-name {
     font-family: var(--font-display);
     font-size: 20px;
     font-weight: 600;
     color: var(--color-white);
-    margin-bottom: 15px;
+    margin-bottom: 0;
+}
+
+.player-badge {
+    height: 24px;
+    width: auto;
+    object-fit: contain;
 }
 
 .player-stats {
