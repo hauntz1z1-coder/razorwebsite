@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Junte-se - RAZOR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/222-GKtyNvT90SRGeOg1lwQUpSvoTmtwaH.png" alt="RAZOR Logo">
+                <span class="logo-text">RAZOR TEAM</span>
+            </a>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="players.html">Players</a></li>
+                    <li><a href="tournaments.html">Torneios</a></li>
+                    <li><a href="ranking.html">Ranking</a></li>
+                    <li><a href="join.html" class="active">Junte-se</a></li>
+                    <li><a href="shop.html">Loja</a></li>
+                    <li><a href="https://discord.gg/razor" target="_blank" class="discord-link">Discord</a></li>
+                </ul>
+            </nav>
+            <div class="nav-actions">
+                <a href="cart.html" class="cart-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span class="cart-count">0</span>
+                </a>
+                <button class="mobile-menu-btn" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <ul class="mobile-nav-list">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="players.html">Players</a></li>
+            <li><a href="tournaments.html">Torneios</a></li>
+            <li><a href="ranking.html">Ranking</a></li>
+            <li><a href="join.html" class="active">Junte-se</a></li>
+            <li><a href="shop.html">Loja</a></li>
+            <li><a href="https://discord.gg/razor" target="_blank">Discord</a></li>
+        </ul>
+    </div>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <span class="section-tag">Recrutamento</span>
+            <h1 class="page-title">Junte-se à RAZOR</h1>
+            <p class="page-description">Faça parte da comunidade competitiva de Fortnite Zero Build mais agressiva do Brasil.</p>
+        </div>
+    </section>
+
+    <!-- Join Content -->
+    <section class="section">
+        <div class="container">
+            <div class="join-content">
+                <div class="join-info">
+                    <h3>Por que se juntar à RAZOR?</h3>
+                    <p>A RAZOR oferece uma estrutura completa para jogadores que desejam evoluir no cenário competitivo de Fortnite Zero Build. Com torneios semanais, coaching profissional e uma comunidade ativa, você terá todas as ferramentas para alcançar o próximo nível.</p>
+                    
+                    <h3 style="margin-top: 40px;">Requisitos</h3>
+                    <ul class="requirements-list">
+                        <li>Ter 16 anos ou mais</li>
+                        <li>Possuir conta Discord ativa</li>
+                        <li>Jogar Fortnite Zero Build regularmente</li>
+                        <li>Ter mentalidade competitiva</li>
+                        <li>Disponibilidade para torneios semanais</li>
+                        <li>Respeitar as regras da comunidade</li>
+                    </ul>
+
+                    <h3 style="margin-top: 40px;">Benefícios</h3>
+                    <ul class="requirements-list">
+                        <li>Acesso a torneios exclusivos com premiação</li>
+                        <li>Coaching e análise de gameplay</li>
+                        <li>Comunidade ativa</li>
+                        <li>Chance de subir para os times PRO e ACADEMY</li>
+                        <li>Descontos exclusivos na loja RAZOR</li>
+                        <li>Network com outros jogadores competitivos</li>
+                    </ul>
+
+                    <div style="margin-top: 40px;">
+                        <a href="https://discord.gg/razor" target="_blank" class="btn btn-primary">Entrar no Discord</a>
+                    </div>
+                </div>
+                
+                <div class="join-form">
+                    <h3 style="color: var(--color-white); margin-bottom: 30px; font-family: var(--font-display); font-size: 24px;">Formulário de Inscrição</h3>
+                    <form id="join-form" onsubmit="handleJoinSubmit(event)">
+                        <div class="form-group">
+                            <label for="nickname">Nickname no Fortnite *</label>
+                            <input type="text" id="nickname" name="nickname" required placeholder="Seu nickname">
+                        </div>
+                        <div class="form-group">
+                            <label for="discord">Discord (usuario#0000) *</label>
+                            <input type="text" id="discord" name="discord" required placeholder="usuario#0000">
+                        </div>
+                        <div class="form-group">
+                            <label for="age">Idade *</label>
+                            <input type="number" id="age" name="age" required min="16" placeholder="Sua idade">
+                        </div>
+                        <div class="form-group">
+                            <label for="region">Região *</label>
+                            <select id="region" name="region" required>
+                                <option value="">Selecione sua região</option>
+                                <option value="brasil-sul">Brasil - Sul</option>
+                                <option value="brasil-sudeste">Brasil - Sudeste</option>
+                                <option value="brasil-centro-oeste">Brasil - Centro-Oeste</option>
+                                <option value="brasil-nordeste">Brasil - Nordeste</option>
+                                <option value="brasil-norte">Brasil - Norte</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tracker">Link do Fortnite Tracker *</label>
+                            <input type="url" id="tracker" name="tracker" required placeholder="https://fortnitetracker.com/profile/...">
+                        </div>
+                        <div class="form-group">
+                            <label for="experience">Experiência Competitiva</label>
+                            <textarea id="experience" name="experience" rows="4" placeholder="Conte sobre sua experiência em torneios, sua melhor colocação, etc."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="motivation">Por que quer entrar na RAZOR? *</label>
+                            <textarea id="motivation" name="motivation" rows="4" required placeholder="Conte-nos por que você quer fazer parte da comunidade..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Enviar Inscrição</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/222-GKtyNvT90SRGeOg1lwQUpSvoTmtwaH.png" alt="RAZOR Logo" class="footer-logo">
+                    <p>A comunidade competitiva de Fortnite Zero Build mais agressiva do Brasil.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Navegação</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="players.html">Players</a></li>
+                        <li><a href="tournaments.html">Torneios</a></li>
+                        <li><a href="ranking.html">Ranking</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Comunidade</h4>
+                    <ul>
+                        <li><a href="join.html">Junte-se</a></li>
+                        <li><a href="shop.html">Loja</a></li>
+                        <li><a href="https://discord.gg/razor" target="_blank">Discord</a></li>
+                    </ul>
+                </div>
+                <div class="footer-social">
+                    <h4>Redes Sociais</h4>
+                    <div class="social-links">
+                        <a href="https://discord.gg/razor" target="_blank" aria-label="Discord">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Twitter">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Instagram">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="YouTube">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 RAZOR. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+
+    <style>
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--color-text);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--color-gray);
+            border: 1px solid var(--color-light-gray);
+            border-radius: 4px;
+            color: var(--color-white);
+            font-family: var(--font-primary);
+            font-size: 15px;
+            transition: all var(--transition-fast);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-green);
+            background: var(--color-dark-gray);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--color-text-muted);
+        }
+
+        .form-group select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+        }
+
+        .form-group select option {
+            background: var(--color-dark-gray);
+            color: var(--color-white);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+    </style>
+</body>
+</html>
