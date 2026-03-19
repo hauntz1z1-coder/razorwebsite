@@ -211,10 +211,103 @@
         }
 
         /* Responsive */
+        @media (max-width: 992px) {
+            .hof-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+        
         @media (max-width: 768px) {
             .hof-grid {
-                grid-template-columns: 1fr;
-                max-width: 400px;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+                max-width: 100%;
+            }
+            
+            .hof-card {
+                min-width: 0;
+            }
+            
+            .hof-profile {
+                height: 180px;
+            }
+            
+            .hof-info {
+                padding: 12px;
+            }
+            
+            .hof-player-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            
+            .hof-name {
+                font-size: 16px;
+            }
+            
+            .hof-badge {
+                width: 22px;
+                height: 22px;
+            }
+            
+            .hof-team {
+                font-size: 10px;
+                margin-bottom: 12px;
+            }
+            
+            .hof-stats {
+                gap: 8px;
+            }
+            
+            .hof-stat {
+                padding: 8px 4px;
+            }
+            
+            .hof-stat-value {
+                font-size: 14px;
+            }
+            
+            .hof-stat-label {
+                font-size: 8px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hof-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            
+            .hof-profile {
+                height: 140px;
+            }
+            
+            .hof-info {
+                padding: 10px;
+            }
+            
+            .hof-name {
+                font-size: 14px;
+            }
+            
+            .hof-badge {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .hof-rank-badge {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+            
+            .hof-stat-value {
+                font-size: 12px;
+            }
+            
+            .hof-stat-label {
+                font-size: 7px;
             }
         }
     </style>

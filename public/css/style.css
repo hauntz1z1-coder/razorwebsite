@@ -1801,6 +1801,103 @@ button {
         padding: 12px 15px;
         font-size: 14px;
     }
+    
+    /* Players Grid Mobile */
+    .players-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .player-card {
+        min-width: 0;
+    }
+    
+    .player-image {
+        height: 150px;
+    }
+    
+    .player-avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .player-info {
+        padding: 12px;
+    }
+    
+    .player-name-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .player-name {
+        font-size: 14px;
+    }
+    
+    .player-badge {
+        height: 20px;
+    }
+    
+    .player-stats {
+        gap: 15px;
+    }
+    
+    .player-stats .stat-value {
+        font-size: 16px;
+    }
+    
+    .player-stats .stat-label {
+        font-size: 10px;
+    }
+    
+    /* Products Grid Mobile */
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .product-card {
+        min-width: 0;
+    }
+    
+    .product-image {
+        height: 180px;
+    }
+    
+    .product-info {
+        padding: 12px;
+    }
+    
+    .product-name {
+        font-size: 14px;
+    }
+    
+    .product-description {
+        font-size: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .product-price {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+    
+    .product-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .product-badge {
+        font-size: 9px;
+        padding: 4px 8px;
+        top: 10px;
+        left: 10px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1839,7 +1936,7 @@ button {
     }
     
     .player-stats {
-        gap: 20px;
+        gap: 15px;
     }
     
     .cart-item {
@@ -1854,6 +1951,93 @@ button {
     
     .join-form {
         padding: 20px;
+    }
+    
+    /* Players Grid Small Mobile */
+    .players-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .player-image {
+        height: 120px;
+    }
+    
+    .player-info {
+        padding: 10px;
+    }
+    
+    .player-name {
+        font-size: 12px;
+    }
+    
+    .player-badge {
+        height: 16px;
+    }
+    
+    .player-stats .stat-value {
+        font-size: 14px;
+    }
+    
+    .player-stats .stat-label {
+        font-size: 9px;
+    }
+    
+    /* Products Grid Small Mobile */
+    .products-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .product-image {
+        height: 140px;
+    }
+    
+    .product-info {
+        padding: 10px;
+    }
+    
+    .product-name {
+        font-size: 12px;
+    }
+    
+    .product-description {
+        font-size: 11px;
+        -webkit-line-clamp: 2;
+    }
+    
+    .product-price {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    
+    .product-actions .btn {
+        font-size: 11px;
+        padding: 8px 10px;
+    }
+    
+    /* Hall of Fame Mobile */
+    .hof-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .hof-card {
+        max-width: 100%;
+    }
+    
+    .hof-avatar {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .hof-name {
+        font-size: 18px;
+    }
+    
+    .hof-stats {
+        flex-wrap: wrap;
+        justify-content: center;
     }
 }
 
