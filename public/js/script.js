@@ -472,7 +472,7 @@ const orderEmbed = {
   inline: true
   },
   {
-  name: '��� Frete',
+  name: '���� Frete',
   value: shipping === 0 ? 'Gratis' : `R$ ${shipping.toFixed(2)}`,
   inline: true
   },
@@ -557,6 +557,7 @@ async function handleJoinSubmit(event) {
     
     // Get form data
     const formData = {
+        role: document.querySelector('input[name="role"]:checked').value,
         nickname: document.getElementById('nickname').value,
         discord: document.getElementById('discord').value,
         age: document.getElementById('age').value,
@@ -570,11 +571,21 @@ async function handleJoinSubmit(event) {
     const regionSelect = document.getElementById('region');
     const regionName = regionSelect.options[regionSelect.selectedIndex].text;
     
+    // Get role display name
+    const roleDisplay = formData.role === 'player' ? 'PLAYER' : 'STAFF';
+    const roleEmoji = formData.role === 'player' ? '🎮' : '👥';
+    const embedColor = formData.role === 'player' ? 0x44ff00 : 0xffa500; // Green for player, Orange for staff
+    
     // Create Discord embed for recruitment
     const recruitEmbed = {
-        title: '📝 Nova Inscricao de Recrutamento!',
-        color: 0x44ff00, // Green color
+        title: `📝 Nova Inscricao - ${roleDisplay}!`,
+        color: embedColor,
         fields: [
+            {
+                name: `${roleEmoji} Tipo de Inscricao`,
+                value: `**${roleDisplay}**`,
+                inline: false
+            },
             {
                 name: '🎮 Nickname',
                 value: formData.nickname,
