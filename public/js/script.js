@@ -322,7 +322,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // ===== Discord Webhook Configuration =====
 const DISCORD_WEBHOOKS = {
     orders: 'https://canary.discord.com/api/webhooks/1482221033653141524/_2KjX-bT8QJVgt2NTXe6h5sDgWuGa8XYB8hU1SxGqvnJRG2r6FCsS2ud27gbeKzF_hu9',
-    recruitment: 'https://canary.discord.com/api/webhooks/1482221206630301726/syVRCjsEWw-5BWdDbTwn6rf1j2gLHrR9dOfo_tg86tWOvTpkLu33njSmsNcnjxNwywjn'
+    recruitment: 'https://canary.discord.com/api/webhooks/1484414808123117680/mnXpaj9fAERU1HC-yMkxcG4MTl20WEhFGAWgFeEnnO11qPeiqZT01J_FiZ306WTX6OwT'
 };
 
 // ===== Send to Discord Webhook =====
@@ -472,7 +472,7 @@ const orderEmbed = {
   inline: true
   },
   {
-  name: '🚚 Frete',
+  name: '��� Frete',
   value: shipping === 0 ? 'Gratis' : `R$ ${shipping.toFixed(2)}`,
   inline: true
   },
