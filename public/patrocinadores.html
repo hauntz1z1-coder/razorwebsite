@@ -498,6 +498,28 @@
 
     <script src="js/main.js"></script>
     <script>
+        // ============================================================
+        // LISTA DE DOADORES - EDITE AQUI MANUALMENTE
+        // Para adicionar um doador, adicione uma linha no formato:
+        // { nome: 'NomeDoPlayer', valor: 50 },
+        // 
+        // TIERS (baseado no valor):
+        // - SURREAL: R$ 100 ou mais
+        // - LENDA: R$ 50 a R$ 99
+        // - ELITE: R$ 20 a R$ 49
+        // - DIAMANTE: R$ 10 a R$ 19
+        // - PLATINA: R$ 1 a R$ 9
+        // ============================================================
+        const doadores = [
+            // Exemplos (remova ou edite conforme necessario):
+            // { nome: 'PlayerTop1', valor: 150 },
+            // { nome: 'PlayerLenda', valor: 75 },
+            // { nome: 'PlayerElite', valor: 30 },
+            // { nome: 'PlayerDiamante', valor: 15 },
+            // { nome: 'PlayerPlatina', valor: 5 },
+        ];
+        // ============================================================
+
         // Badge images for each tier
         const tierBadges = {
             SURREAL: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/unreal-NKFwkWJCckIcToSwhzSFvSCMl1Vx5V.png',
@@ -507,8 +529,17 @@
             PLATINA: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/platina-nYbkDBYNCOvOwIMIdSwcHsdI5mbor9.png'
         };
 
-        // Render donors by tier from API data
-        function renderDonorsByTier(grouped) {
+        // Calcula o tier baseado no valor
+        function getTier(valor) {
+            if (valor >= 100) return 'SURREAL';
+            if (valor >= 50) return 'LENDA';
+            if (valor >= 20) return 'ELITE';
+            if (valor >= 10) return 'DIAMANTE';
+            return 'PLATINA';
+        }
+
+        // Renderiza os doadores
+        function renderDoadores() {
             const tierMapping = {
                 SURREAL: 'surreal',
                 LENDA: 'lenda',
@@ -517,18 +548,36 @@
                 PLATINA: 'platina'
             };
 
+            // Agrupa doadores por tier
+            const grouped = {
+                SURREAL: [],
+                LENDA: [],
+                ELITE: [],
+                DIAMANTE: [],
+                PLATINA: []
+            };
+
+            doadores.forEach(doador => {
+                const tier = getTier(doador.valor);
+                grouped[tier].push(doador);
+            });
+
+            // Renderiza cada tier
             Object.keys(grouped).forEach(tierKey => {
                 const tierName = tierMapping[tierKey];
                 const container = document.getElementById(`tier-${tierName}`);
                 const tierDonors = grouped[tierKey];
 
-                if (tierDonors && tierDonors.length > 0) {
-                    container.innerHTML = tierDonors.map(donor => `
+                // Ordena por valor (maior primeiro)
+                tierDonors.sort((a, b) => b.valor - a.valor);
+
+                if (tierDonors.length > 0) {
+                    container.innerHTML = tierDonors.map(doador => `
                         <div class="donor-card">
                             <img src="${tierBadges[tierKey]}" alt="${tierKey} Badge" class="donor-badge">
                             <div class="donor-info">
-                                <div class="donor-name">${donor.name}</div>
-                                <div class="donor-amount">R$ ${parseFloat(donor.amount).toFixed(2)}</div>
+                                <div class="donor-name">${doador.nome}</div>
+                                <div class="donor-amount">R$ ${doador.valor.toFixed(2)}</div>
                             </div>
                         </div>
                     `).join('');
@@ -536,25 +585,8 @@
             });
         }
 
-        // Fetch donors from API
-        async function fetchDonors() {
-            try {
-                const response = await fetch('/api/donors');
-                const data = await response.json();
-                
-                if (data.success && data.grouped) {
-                    renderDonorsByTier(data.grouped);
-                }
-            } catch (error) {
-                console.log('Carregando dados locais...');
-            }
-        }
-
-        // Initialize - fetch from API
-        document.addEventListener('DOMContentLoaded', fetchDonors);
-        
-        // Auto-refresh every 30 seconds
-        setInterval(fetchDonors, 30000);
+        // Inicializa ao carregar a pagina
+        document.addEventListener('DOMContentLoaded', renderDoadores);
     </script>
 </body>
 </html>
