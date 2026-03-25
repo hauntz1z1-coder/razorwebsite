@@ -528,7 +528,7 @@
                             <img src="${tierBadges[tierKey]}" alt="${tierKey} Badge" class="donor-badge">
                             <div class="donor-info">
                                 <div class="donor-name">${donor.name}</div>
-                                <div class="donor-amount">R$ ${donor.amount.toFixed(2)}</div>
+                                <div class="donor-amount">R$ ${parseFloat(donor.amount).toFixed(2)}</div>
                             </div>
                         </div>
                     `).join('');

@@ -1,42 +1,36 @@
 import { NextResponse } from 'next/server'
-import { promises as fs } from 'fs'
-import path from 'path'
+import { createClient } from '@supabase/supabase-js'
 
-interface Donor {
-  id: string
-  name: string
-  amount: number
-  elo: string
-  date: string
-}
-
-const DONORS_FILE = path.join(process.cwd(), 'data', 'donors.json')
-
-async function readDonors(): Promise<Donor[]> {
-  try {
-    const data = await fs.readFile(DONORS_FILE, 'utf-8')
-    return JSON.parse(data)
-  } catch {
-    return []
-  }
-}
+// Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export async function GET() {
   try {
-    const donors = await readDonors()
+    // Buscar todos os doadores ordenados por valor
+    const { data: donors, error } = await supabase
+      .from('donors')
+      .select('*')
+      .order('amount', { ascending: false })
     
-    // Agrupar por elo
+    if (error) {
+      console.error('[v0] Erro ao buscar doadores:', error)
+      return NextResponse.json({ error: 'Erro ao buscar doadores' }, { status: 500 })
+    }
+    
+    // Agrupar por tier/elo
     const grouped = {
-      SURREAL: donors.filter(d => d.elo === 'SURREAL'),
-      LENDA: donors.filter(d => d.elo === 'LENDA'),
-      ELITE: donors.filter(d => d.elo === 'ELITE'),
-      DIAMANTE: donors.filter(d => d.elo === 'DIAMANTE'),
-      PLATINA: donors.filter(d => d.elo === 'PLATINA'),
+      SURREAL: donors?.filter(d => d.tier === 'SURREAL') || [],
+      LENDA: donors?.filter(d => d.tier === 'LENDA') || [],
+      ELITE: donors?.filter(d => d.tier === 'ELITE') || [],
+      DIAMANTE: donors?.filter(d => d.tier === 'DIAMANTE') || [],
+      PLATINA: donors?.filter(d => d.tier === 'PLATINA') || [],
     }
     
     return NextResponse.json({ 
       success: true,
-      total: donors.length,
+      total: donors?.length || 0,
       donors,
       grouped
     })

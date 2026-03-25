@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { promises as fs } from 'fs'
-import path from 'path'
+import { createClient } from '@supabase/supabase-js'
+
+// Supabase client with service role for bypassing RLS
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 // Elos e suas configuracoes
 const ELOS = {
-  SURREAL: { min: 100, color: 0x9b59b6, image: 'unreal.png', name: 'SURREAL' },
-  LENDA: { min: 50, color: 0xff6b35, image: 'lenda.png', name: 'LENDA' },
-  ELITE: { min: 20, color: 0x2ecc71, image: 'elite.png', name: 'ELITE' },
-  DIAMANTE: { min: 10, color: 0x3498db, image: 'diamante.png', name: 'DIAMANTE' },
-  PLATINA: { min: 0, color: 0x1abc9c, image: 'platina.png', name: 'PLATINA' },
+  SURREAL: { min: 100, color: 0x9b59b6, name: 'SURREAL' },
+  LENDA: { min: 50, color: 0xff6b35, name: 'LENDA' },
+  ELITE: { min: 20, color: 0x2ecc71, name: 'ELITE' },
+  DIAMANTE: { min: 10, color: 0x3498db, name: 'DIAMANTE' },
+  PLATINA: { min: 0, color: 0x1abc9c, name: 'PLATINA' },
 }
 
 // URLs das imagens dos elos
@@ -21,7 +25,7 @@ const ELO_IMAGES: Record<string, string> = {
 }
 
 // Discord Webhook URL
-const DISCORD_WEBHOOK_URL = 'https://canary.discord.com/api/webhooks/1486386264944148741/Ot_tvPi4zrVKAEZrDsaUpUhxk5jBTZxW7vB1oawnrDEUCcRRE3-yF2KR9QXARvZhTA57'
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || ''
 
 // Determinar o elo baseado no valor
 function getElo(amount: number): keyof typeof ELOS {
@@ -32,59 +36,41 @@ function getElo(amount: number): keyof typeof ELOS {
   return 'PLATINA'
 }
 
-// Caminho do arquivo de doadores
-const DONORS_FILE = path.join(process.cwd(), 'data', 'donors.json')
-
-// Interface do doador
-interface Donor {
-  id: string
-  name: string
-  amount: number
-  elo: string
-  date: string
-}
-
-// Ler doadores do arquivo
-async function readDonors(): Promise<Donor[]> {
-  try {
-    const data = await fs.readFile(DONORS_FILE, 'utf-8')
-    return JSON.parse(data)
-  } catch {
-    return []
-  }
-}
-
-// Salvar doadores no arquivo
-async function saveDonors(donors: Donor[]): Promise<void> {
-  const dir = path.dirname(DONORS_FILE)
-  try {
-    await fs.mkdir(dir, { recursive: true })
-  } catch {
-    // Diretorio ja existe
-  }
-  await fs.writeFile(DONORS_FILE, JSON.stringify(donors, null, 2))
-}
-
 // Enviar notificacao para o Discord
-async function sendDiscordNotification(donor: Donor, elo: keyof typeof ELOS): Promise<void> {
+async function sendDiscordNotification(name: string, amount: number, elo: keyof typeof ELOS, message?: string): Promise<void> {
+  if (!DISCORD_WEBHOOK_URL) {
+    console.log('[v0] Discord webhook URL nao configurada')
+    return
+  }
+
   const eloConfig = ELOS[elo]
   
+  const fields = [
+    {
+      name: '💰 Valor',
+      value: `R$ ${amount.toFixed(2)}`,
+      inline: true,
+    },
+    {
+      name: '🏆 Elo Conquistado',
+      value: eloConfig.name,
+      inline: true,
+    },
+  ]
+
+  if (message) {
+    fields.push({
+      name: '💬 Mensagem',
+      value: message,
+      inline: false,
+    })
+  }
+
   const embed = {
     title: '💎 NOVA DOACAO RECEBIDA! 💎',
-    description: `**${donor.name}** acabou de apoiar a Razor Team!`,
+    description: `**${name}** acabou de apoiar a Razor Team!`,
     color: eloConfig.color,
-    fields: [
-      {
-        name: '💰 Valor',
-        value: `R$ ${donor.amount.toFixed(2)}`,
-        inline: true,
-      },
-      {
-        name: '🏆 Elo Conquistado',
-        value: eloConfig.name,
-        inline: true,
-      },
-    ],
+    fields,
     thumbnail: {
       url: ELO_IMAGES[elo],
     },
@@ -125,9 +111,12 @@ export async function POST(request: NextRequest) {
     console.log('[v0] Webhook Livepix recebido:', JSON.stringify(body, null, 2))
     
     // Extrair dados da doacao (ajuste conforme o formato real do Livepix)
-    const amount = body.amount || body.value || body.donation?.amount || 0
-    const name = body.name || body.donor?.name || body.username || 'Anonimo'
-    const id = body.id || body.transaction_id || Date.now().toString()
+    // Livepix pode enviar em diferentes formatos
+    const amount = parseFloat(body.amount || body.value || body.donation?.amount || body.payment?.amount || 0)
+    const name = body.name || body.donor?.name || body.username || body.sender?.name || 'Anonimo'
+    const email = body.email || body.donor?.email || body.sender?.email || null
+    const message = body.message || body.donation?.message || body.text || null
+    const transactionId = body.id || body.transaction_id || body.payment_id || Date.now().toString()
     
     if (amount <= 0) {
       return NextResponse.json({ error: 'Valor invalido' }, { status: 400 })
@@ -136,39 +125,41 @@ export async function POST(request: NextRequest) {
     // Determinar o elo
     const elo = getElo(amount)
     
-    // Criar objeto do doador
-    const donor: Donor = {
-      id,
-      name,
-      amount,
-      elo,
-      date: new Date().toISOString(),
+    // Verificar se ja existe doacao com este transaction_id
+    const { data: existingDonation } = await supabase
+      .from('donors')
+      .select('id')
+      .eq('transaction_id', transactionId)
+      .single()
+    
+    if (existingDonation) {
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Doacao ja processada anteriormente'
+      })
     }
     
-    // Ler doadores existentes e adicionar o novo
-    const donors = await readDonors()
+    // Inserir nova doacao no Supabase
+    const { data: donor, error } = await supabase
+      .from('donors')
+      .insert({
+        name,
+        email,
+        amount,
+        tier: elo,
+        message,
+        transaction_id: transactionId,
+      })
+      .select()
+      .single()
     
-    // Verificar se o doador ja existe (pelo nome) e atualizar o valor total
-    const existingIndex = donors.findIndex(d => d.name.toLowerCase() === name.toLowerCase())
-    
-    if (existingIndex >= 0) {
-      // Atualizar doador existente
-      donors[existingIndex].amount += amount
-      donors[existingIndex].elo = getElo(donors[existingIndex].amount)
-      donors[existingIndex].date = donor.date
-    } else {
-      // Adicionar novo doador
-      donors.push(donor)
+    if (error) {
+      console.error('[v0] Erro ao salvar no Supabase:', error)
+      return NextResponse.json({ error: 'Erro ao salvar doacao' }, { status: 500 })
     }
-    
-    // Ordenar por valor (maior primeiro)
-    donors.sort((a, b) => b.amount - a.amount)
-    
-    // Salvar doadores
-    await saveDonors(donors)
     
     // Enviar notificacao para o Discord
-    await sendDiscordNotification(donor, elo)
+    await sendDiscordNotification(name, amount, elo, message)
     
     return NextResponse.json({ 
       success: true, 
