@@ -6,8 +6,8 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-// Admin password for protection
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'razor2024'
+// Admin password for protection (default: admin@@1)
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin@@1'
 
 // Calculate tier based on amount
 function getTier(amount: number): string {
