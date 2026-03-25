@@ -653,26 +653,6 @@
 
     <script src="js/main.js"></script>
     <script>
-        // ============================================================
-        // LISTA DE DOADORES - EDITE AQUI MANUALMENTE
-        // Para adicionar um doador, adicione uma linha no tier correto
-        // ============================================================
-        const doadores = {
-            GOLD: [
-                // Adicione doadores Gold aqui (R$ 100)
-                { nome: 'Vyper', valor: 100 },
-            ],
-            SILVER: [
-                // Adicione doadores Silver aqui (R$ 50)
-                { nome: 'ExemploSilver', valor: 50 },
-            ],
-            BRONZE: [
-                // Adicione doadores Bronze aqui (R$ 10)
-                { nome: 'ExemploBronze', valor: 10 },
-            ]
-        };
-        // ============================================================
-
         // Badge images for each tier
         const tierBadges = {
             GOLD: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/gold-9wmGQEQSYynyhOkTlvQwvGBKnwP9i3.png',
@@ -687,19 +667,19 @@
         };
 
         // Renderiza os doadores
-        function renderDoadores() {
-            Object.keys(doadores).forEach(tierKey => {
+        function renderDoadores(grouped) {
+            Object.keys(tierMapping).forEach(tierKey => {
                 const tierName = tierMapping[tierKey];
                 const container = document.getElementById(`tier-${tierName}`);
-                const tierDonors = doadores[tierKey];
+                const tierDonors = grouped[tierKey] || [];
 
-                if (tierDonors && tierDonors.length > 0) {
+                if (tierDonors.length > 0) {
                     container.innerHTML = tierDonors.map(doador => `
                         <div class="donor-card">
                             <img src="${tierBadges[tierKey]}" alt="${tierKey} Badge" class="donor-badge">
                             <div class="donor-info">
-                                <div class="donor-name">${doador.nome}</div>
-                                <div class="donor-amount">R$ ${doador.valor.toFixed(2)}</div>
+                                <div class="donor-name">${doador.name || doador.nome}</div>
+                                <div class="donor-amount">R$ ${parseFloat(doador.amount || doador.valor).toFixed(2)}</div>
                             </div>
                         </div>
                     `).join('');
@@ -709,8 +689,29 @@
             });
         }
 
+        // Busca doadores da API (Supabase)
+        async function fetchDoadores() {
+            try {
+                const response = await fetch('/api/donors');
+                const data = await response.json();
+                
+                if (data.success && data.grouped) {
+                    renderDoadores(data.grouped);
+                } else {
+                    // Se nao houver dados, mostra mensagem padrao
+                    renderDoadores({ GOLD: [], SILVER: [], BRONZE: [] });
+                }
+            } catch (error) {
+                console.log('API nao disponivel');
+                renderDoadores({ GOLD: [], SILVER: [], BRONZE: [] });
+            }
+        }
+
         // Inicializa ao carregar a pagina
-        document.addEventListener('DOMContentLoaded', renderDoadores);
+        document.addEventListener('DOMContentLoaded', fetchDoadores);
+
+        // Atualiza a cada 30 segundos automaticamente
+        setInterval(fetchDoadores, 30000);
     </script>
 </body>
 </html>
