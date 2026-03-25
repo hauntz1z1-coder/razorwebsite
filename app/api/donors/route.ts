@@ -9,13 +9,11 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 // Admin password for protection (default: admin@@1)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin@@1'
 
-// Calculate tier based on amount
+// Calculate tier based on amount (Gold = R$100, Silver = R$50, Bronze = R$10)
 function getTier(amount: number): string {
-  if (amount >= 100) return 'SURREAL'
-  if (amount >= 50) return 'LENDA'
-  if (amount >= 20) return 'ELITE'
-  if (amount >= 10) return 'DIAMANTE'
-  return 'PLATINA'
+  if (amount >= 100) return 'GOLD'
+  if (amount >= 50) return 'SILVER'
+  return 'BRONZE'
 }
 
 // GET - List all donors
@@ -32,11 +30,9 @@ export async function GET() {
     }
     
     const grouped = {
-      SURREAL: donors?.filter(d => d.tier === 'SURREAL') || [],
-      LENDA: donors?.filter(d => d.tier === 'LENDA') || [],
-      ELITE: donors?.filter(d => d.tier === 'ELITE') || [],
-      DIAMANTE: donors?.filter(d => d.tier === 'DIAMANTE') || [],
-      PLATINA: donors?.filter(d => d.tier === 'PLATINA') || [],
+      GOLD: donors?.filter(d => d.tier === 'GOLD') || [],
+      SILVER: donors?.filter(d => d.tier === 'SILVER') || [],
+      BRONZE: donors?.filter(d => d.tier === 'BRONZE') || [],
     }
     
     return NextResponse.json({ 

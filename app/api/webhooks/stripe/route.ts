@@ -11,13 +11,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// Calculate tier based on amount in BRL
+// Calculate tier based on amount in BRL (Gold = R$100, Silver = R$50, Bronze = R$10)
 function getTier(amount: number): string {
-  if (amount >= 100) return 'SURREAL'
-  if (amount >= 50) return 'LENDA'
-  if (amount >= 20) return 'ELITE'
-  if (amount >= 10) return 'DIAMANTE'
-  return 'PLATINA'
+  if (amount >= 100) return 'GOLD'
+  if (amount >= 50) return 'SILVER'
+  return 'BRONZE'
 }
 
 // Send notification to Discord
@@ -26,19 +24,15 @@ async function sendDiscordNotification(donor: { name: string; amount: number; ti
   if (!webhookUrl) return
 
   const tierColors: Record<string, number> = {
-    SURREAL: 0x9945FF,
-    LENDA: 0xFF6B35,
-    ELITE: 0x4FFFB0,
-    DIAMANTE: 0x45B7FF,
-    PLATINA: 0x00CED1,
+    GOLD: 0xFFD700,
+    SILVER: 0xC0C0C0,
+    BRONZE: 0xCD7F32,
   }
 
   const tierEmojis: Record<string, string> = {
-    SURREAL: '🌟',
-    LENDA: '🔥',
-    ELITE: '💎',
-    DIAMANTE: '💠',
-    PLATINA: '⭐',
+    GOLD: '🥇',
+    SILVER: '🥈',
+    BRONZE: '🥉',
   }
 
   try {
