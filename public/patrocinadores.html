@@ -498,62 +498,37 @@
 
     <script src="js/main.js"></script>
     <script>
-        // Donors data - Easy to add new donors
-        const donors = [
-            // Example donors - Add new donors here with format: { nome: 'Name', valor: amount }
-            // { nome: 'ExamplePlayer', valor: 150 },
-            // { nome: 'AnotherDonor', valor: 75 },
-        ];
-
         // Badge images for each tier
         const tierBadges = {
-            surreal: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/unreal-NKFwkWJCckIcToSwhzSFvSCMl1Vx5V.png',
-            lenda: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/lenda-2czyILe0dMJkigiJTiesaL3jXcriU1.png',
-            elite: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/elite-gGQZXBT7NxD1fnPmDOspGE6KZwAMWX.png',
-            diamante: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/diamante-cQQEUfIwGewDPZcCUUR62YKPgHkS4Z.png',
-            platina: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/platina-nYbkDBYNCOvOwIMIdSwcHsdI5mbor9.png'
+            SURREAL: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/unreal-NKFwkWJCckIcToSwhzSFvSCMl1Vx5V.png',
+            LENDA: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/lenda-2czyILe0dMJkigiJTiesaL3jXcriU1.png',
+            ELITE: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/elite-gGQZXBT7NxD1fnPmDOspGE6KZwAMWX.png',
+            DIAMANTE: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/diamante-cQQEUfIwGewDPZcCUUR62YKPgHkS4Z.png',
+            PLATINA: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/platina-nYbkDBYNCOvOwIMIdSwcHsdI5mbor9.png'
         };
 
-        // Get tier based on donation amount
-        function getTier(valor) {
-            if (valor >= 100) return 'surreal';
-            if (valor >= 50) return 'lenda';
-            if (valor >= 20) return 'elite';
-            if (valor >= 10) return 'diamante';
-            return 'platina';
-        }
-
-        // Render donors by tier
-        function renderDonors() {
-            const tiers = {
-                surreal: [],
-                lenda: [],
-                elite: [],
-                diamante: [],
-                platina: []
+        // Render donors by tier from API data
+        function renderDonorsByTier(grouped) {
+            const tierMapping = {
+                SURREAL: 'surreal',
+                LENDA: 'lenda',
+                ELITE: 'elite',
+                DIAMANTE: 'diamante',
+                PLATINA: 'platina'
             };
 
-            // Sort donors into tiers
-            donors.forEach(donor => {
-                const tier = getTier(donor.valor);
-                tiers[tier].push(donor);
-            });
-
-            // Render each tier
-            Object.keys(tiers).forEach(tierName => {
+            Object.keys(grouped).forEach(tierKey => {
+                const tierName = tierMapping[tierKey];
                 const container = document.getElementById(`tier-${tierName}`);
-                const tierDonors = tiers[tierName];
+                const tierDonors = grouped[tierKey];
 
-                if (tierDonors.length > 0) {
-                    // Sort by value (highest first)
-                    tierDonors.sort((a, b) => b.valor - a.valor);
-
+                if (tierDonors && tierDonors.length > 0) {
                     container.innerHTML = tierDonors.map(donor => `
                         <div class="donor-card">
-                            <img src="${tierBadges[tierName]}" alt="${tierName} Badge" class="donor-badge">
+                            <img src="${tierBadges[tierKey]}" alt="${tierKey} Badge" class="donor-badge">
                             <div class="donor-info">
-                                <div class="donor-name">${donor.nome}</div>
-                                <div class="donor-amount">R$ ${donor.valor.toFixed(2)}</div>
+                                <div class="donor-name">${donor.name}</div>
+                                <div class="donor-amount">R$ ${donor.amount.toFixed(2)}</div>
                             </div>
                         </div>
                     `).join('');
@@ -561,8 +536,25 @@
             });
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', renderDonors);
+        // Fetch donors from API
+        async function fetchDonors() {
+            try {
+                const response = await fetch('/api/donors');
+                const data = await response.json();
+                
+                if (data.success && data.grouped) {
+                    renderDonorsByTier(data.grouped);
+                }
+            } catch (error) {
+                console.log('Carregando dados locais...');
+            }
+        }
+
+        // Initialize - fetch from API
+        document.addEventListener('DOMContentLoaded', fetchDonors);
+        
+        // Auto-refresh every 30 seconds
+        setInterval(fetchDonors, 30000);
     </script>
 </body>
 </html>
