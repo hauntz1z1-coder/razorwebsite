@@ -95,14 +95,12 @@ export async function POST(request: Request) {
     if (amountBrl > 0) {
       const tier = getTier(amountBrl)
 
-      // Save to Supabase
+      // Save to Supabase (tabela patrocinadores)
       try {
-        const { error } = await supabase.from('donors').insert({
-          name: donorName,
-          email: session.customer_email || null,
-          amount: amountBrl,
-          tier: tier,
-          transaction_id: session.id,
+        const { error } = await supabase.from('patrocinadores').insert({
+          nome: donorName,
+          valor: amountBrl,
+          elo: tier,
         })
 
         if (error) {

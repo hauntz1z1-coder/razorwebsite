@@ -16,34 +16,43 @@ function getTier(amount: number): string {
   return 'BRONZE'
 }
 
-// GET - List all donors
+// GET - List all patrocinadores
 export async function GET() {
   try {
-    const { data: donors, error } = await supabase
-      .from('donors')
+    const { data: patrocinadores, error } = await supabase
+      .from('patrocinadores')
       .select('*')
-      .order('amount', { ascending: false })
+      .order('valor', { ascending: false })
     
     if (error) {
-      console.error('Erro ao buscar doadores:', error)
-      return NextResponse.json({ error: 'Erro ao buscar doadores' }, { status: 500 })
+      console.error('Erro ao buscar patrocinadores:', error)
+      return NextResponse.json({ error: 'Erro ao buscar patrocinadores' }, { status: 500 })
     }
     
+    // Mapeia para formato esperado pelo frontend
+    const donors = patrocinadores?.map(p => ({
+      id: p.id,
+      name: p.nome,
+      amount: p.valor,
+      tier: p.elo,
+      created_at: p.created_at
+    })) || []
+    
     const grouped = {
-      GOLD: donors?.filter(d => d.tier === 'GOLD') || [],
-      SILVER: donors?.filter(d => d.tier === 'SILVER') || [],
-      BRONZE: donors?.filter(d => d.tier === 'BRONZE') || [],
+      GOLD: donors.filter(d => d.tier === 'GOLD'),
+      SILVER: donors.filter(d => d.tier === 'SILVER'),
+      BRONZE: donors.filter(d => d.tier === 'BRONZE'),
     }
     
     return NextResponse.json({ 
       success: true,
-      total: donors?.length || 0,
+      total: donors.length,
       donors,
       grouped
     })
   } catch (error) {
-    console.error('Erro ao ler doadores:', error)
-    return NextResponse.json({ error: 'Erro ao ler doadores' }, { status: 500 })
+    console.error('Erro ao ler patrocinadores:', error)
+    return NextResponse.json({ error: 'Erro ao ler patrocinadores' }, { status: 500 })
   }
 }
 
@@ -66,14 +75,11 @@ export async function POST(request: Request) {
     const tier = getTier(parseFloat(amount))
     
     const { data: donor, error } = await supabase
-      .from('donors')
+      .from('patrocinadores')
       .insert({
-        name,
-        amount: parseFloat(amount),
-        email: email || null,
-        message: message || null,
-        tier,
-        transaction_id: `manual_${Date.now()}`
+        nome: name,
+        valor: parseFloat(amount),
+        elo: tier
       })
       .select()
       .single()
@@ -136,7 +142,7 @@ export async function DELETE(request: Request) {
     }
     
     const { error } = await supabase
-      .from('donors')
+      .from('patrocinadores')
       .delete()
       .eq('id', id)
     
