@@ -6,10 +6,11 @@ import { createClient } from '@supabase/supabase-js'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 // Supabase client with SERVICE ROLE KEY (not anon key) for server-side operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// URL padrao: https://euamfkbnnjsfjpjredvre.supabase.co
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://euamfkbnnjsfjpjredvre.supabase.co'
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 // Calculate tier based on amount in BRL (Gold = R$100, Silver = R$50, Bronze = R$10)
 function getTier(amount: number): string {
@@ -124,8 +125,8 @@ export async function POST(request: Request) {
 
       // Save to Supabase (tabela patrocinadores)
       console.log('[v0] Conectando ao Supabase...')
-      console.log('[v0] URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-      console.log('[v0] Service Role Key presente:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+      console.log('[v0] URL:', supabaseUrl)
+      console.log('[v0] Service Role Key presente:', !!supabaseKey)
       
       try {
         console.log('[v0] Inserindo no banco de dados...')
