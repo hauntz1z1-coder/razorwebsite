@@ -428,6 +428,46 @@
             transform: scale(1.05);
         }
 
+        .tier-card-benefits {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            text-align: left;
+            font-size: 13px;
+            color: var(--color-text-muted);
+        }
+
+        .tier-card-benefits li {
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .tier-card-benefits li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--color-primary);
+            font-weight: bold;
+        }
+
+        .tier-card-gold .tier-card-benefits li::before {
+            color: #FFD700;
+        }
+
+        .tier-card-silver .tier-card-benefits li::before {
+            color: #C0C0C0;
+        }
+
+        .tier-card-bronze .tier-card-benefits li::before {
+            color: #CD7F32;
+        }
+
+        .tier-card-highlight {
+            font-weight: 600;
+            color: var(--color-white);
+        }
+
         @media (max-width: 768px) {
             .tier-header {
                 flex-wrap: wrap;
@@ -530,6 +570,18 @@
                     <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/gold-9wmGQEQSYynyhOkTlvQwvGBKnwP9i3.png" alt="Gold Badge" class="tier-card-badge">
                     <h3 class="tier-card-title">GOLD</h3>
                     <div class="tier-card-price">R$ 100<span>,00</span></div>
+                    <ul class="tier-card-benefits">
+                        <li><span class="tier-card-highlight">Tudo dos tiers anteriores +</span></li>
+                        <li>Entrada garantida em torneios (sem fila)</li>
+                        <li>Campeonatos exclusivos GOLD</li>
+                        <li>Destaque no site (TOP players/apoiadores)</li>
+                        <li>Badge GOLD premium (animada)</li>
+                        <li>Chance de entrar para o time oficial</li>
+                        <li>Divulgacao nas redes sociais</li>
+                        <li>Acesso aos bastidores da guilda</li>
+                        <li>Desconto maximo (15%+) na loja</li>
+                        <li>Prioridade em parcerias e recrutamento</li>
+                    </ul>
                     <a href="https://buy.stripe.com/test_4gMbJ19LCevV5624OmbAs02" target="_blank" class="tier-card-btn">Seja Gold</a>
                 </div>
 
@@ -538,6 +590,15 @@
                     <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/silver-QQcniJbBy1n70F41b1jJUqoOMw38gY.png" alt="Silver Badge" class="tier-card-badge">
                     <h3 class="tier-card-title">SILVER</h3>
                     <div class="tier-card-price">R$ 50<span>,00</span></div>
+                    <ul class="tier-card-benefits">
+                        <li><span class="tier-card-highlight">Tudo do BRONZE +</span></li>
+                        <li>Fila prioritaria em torneios</li>
+                        <li>Acesso a torneios exclusivos PRATA+</li>
+                        <li>Badge PRATA com destaque</li>
+                        <li>Canal VIP no Discord</li>
+                        <li>Participacao em sorteios exclusivos</li>
+                        <li>Desconto de 10% na loja</li>
+                    </ul>
                     <a href="https://buy.stripe.com/test_cNi7sLe1S9bB41Ya8GbAs01" target="_blank" class="tier-card-btn">Seja Silver</a>
                 </div>
 
@@ -546,6 +607,14 @@
                     <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/bronze-2oOJBzcVfflm2QfE64f3eVcQ9uZ0Ou.png" alt="Bronze Badge" class="tier-card-badge">
                     <h3 class="tier-card-title">BRONZE</h3>
                     <div class="tier-card-price">R$ 10<span>,00</span></div>
+                    <ul class="tier-card-benefits">
+                        <li>Acesso ao Discord da comunidade</li>
+                        <li>Participacao em torneios abertos</li>
+                        <li>Badge BRONZE no perfil</li>
+                        <li>Nome listado como apoiador</li>
+                        <li>Acesso antecipado a anuncios</li>
+                        <li>Desconto de 5% na loja</li>
+                    </ul>
                     <a href="https://buy.stripe.com/test_9B6bJ1e1S5ZpbuqbcKbAs00" target="_blank" class="tier-card-btn">Seja Bronze</a>
                 </div>
             </div>

@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
-// Supabase client with service role for server-side operations
+// Supabase client with SERVICE ROLE KEY (not anon key) for server-side operations
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -21,7 +21,10 @@ function getTier(amount: number): string {
 // Send notification to Discord
 async function sendDiscordNotification(donor: { name: string; amount: number; tier: string }) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL
-  if (!webhookUrl) return
+  if (!webhookUrl) {
+    console.log('[v0] DISCORD_WEBHOOK_URL nao configurado')
+    return
+  }
 
   const tierColors: Record<string, number> = {
     GOLD: 0xFFD700,
@@ -36,7 +39,8 @@ async function sendDiscordNotification(donor: { name: string; amount: number; ti
   }
 
   try {
-    await fetch(webhookUrl, {
+    console.log('[v0] Enviando notificacao para Discord...')
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -55,61 +59,90 @@ async function sendDiscordNotification(donor: { name: string; amount: number; ti
         ],
       }),
     })
+    console.log('[v0] Discord response status:', response.status)
   } catch (error) {
-    console.error('Erro ao enviar para Discord:', error)
+    console.error('[v0] Erro ao enviar para Discord:', error)
   }
 }
 
 export async function POST(request: Request) {
-  const body = await request.text()
+  console.log('[v0] ========== WEBHOOK STRIPE RECEBIDO ==========')
+  
+  let body: string
+  try {
+    body = await request.text()
+    console.log('[v0] Body recebido, tamanho:', body.length)
+  } catch (err) {
+    console.error('[v0] Erro ao ler body:', err)
+    return NextResponse.json({ error: 'Erro ao ler body' }, { status: 400 })
+  }
+
   const headersList = await headers()
   const signature = headersList.get('stripe-signature')
+  console.log('[v0] Signature presente:', !!signature)
 
-  // If no webhook secret, process without verification (for testing)
   let event: Stripe.Event
 
   try {
     if (process.env.STRIPE_WEBHOOK_SECRET && signature) {
+      console.log('[v0] Verificando assinatura do webhook...')
       event = stripe.webhooks.constructEvent(
         body,
         signature,
         process.env.STRIPE_WEBHOOK_SECRET
       )
+      console.log('[v0] Assinatura verificada com sucesso!')
     } else {
-      // For testing without webhook signature
+      console.log('[v0] Processando sem verificacao de assinatura (modo teste)')
       event = JSON.parse(body) as Stripe.Event
     }
   } catch (err) {
-    console.error('Webhook signature verification failed:', err)
+    console.error('[v0] Erro na verificacao da assinatura:', err)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
+
+  console.log('[v0] Tipo do evento:', event.type)
 
   // Handle the checkout.session.completed event
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
+    console.log('[v0] Checkout session ID:', session.id)
 
-    // Get donor info from metadata
-    const donorName = session.metadata?.donor_name || 'Anonimo'
-    const amountBrl = parseFloat(session.metadata?.amount_brl || '0')
+    // Pega o nome do customer_details (do formulario de pagamento do Stripe)
+    const donorName = session.customer_details?.name || session.metadata?.donor_name || 'Anonimo'
+    console.log('[v0] Nome do doador:', donorName)
+
+    // Pega o valor do amount_total (em centavos) e converte para BRL
+    const amountCents = session.amount_total || 0
+    const amountBrl = amountCents / 100
+    console.log('[v0] Valor em centavos:', amountCents)
+    console.log('[v0] Valor em BRL:', amountBrl)
 
     if (amountBrl > 0) {
       const tier = getTier(amountBrl)
+      console.log('[v0] Tier calculado:', tier)
 
       // Save to Supabase (tabela patrocinadores)
+      console.log('[v0] Conectando ao Supabase...')
+      console.log('[v0] URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+      console.log('[v0] Service Role Key presente:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+      
       try {
-        const { error } = await supabase.from('patrocinadores').insert({
+        console.log('[v0] Inserindo no banco de dados...')
+        const { data, error } = await supabase.from('patrocinadores').insert({
           nome: donorName,
           valor: amountBrl,
           elo: tier,
-        })
+        }).select()
 
         if (error) {
-          console.error('Erro ao salvar no Supabase:', error)
+          console.error('[v0] ERRO ao salvar no Supabase:', error.message)
+          console.error('[v0] Detalhes do erro:', JSON.stringify(error))
         } else {
-          console.log(`Doador ${donorName} salvo com sucesso!`)
+          console.log('[v0] SUCESSO! Doador salvo:', JSON.stringify(data))
         }
       } catch (err) {
-        console.error('Erro ao conectar com Supabase:', err)
+        console.error('[v0] EXCECAO ao conectar com Supabase:', err)
       }
 
       // Send Discord notification
@@ -118,8 +151,13 @@ export async function POST(request: Request) {
         amount: amountBrl,
         tier: tier,
       })
+    } else {
+      console.log('[v0] Valor zerado, ignorando...')
     }
+  } else {
+    console.log('[v0] Evento ignorado (nao e checkout.session.completed)')
   }
 
+  console.log('[v0] ========== WEBHOOK PROCESSADO ==========')
   return NextResponse.json({ received: true })
 }
