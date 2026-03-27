@@ -210,6 +210,13 @@ export async function POST(request: NextRequest) {
     //   }
     // }
     
+    // Valida o Client ID (opcional mas recomendado)
+    const expectedClientId = process.env.LIVEPIX_CLIENT_ID || 'f1dc11b8-f8e5-4859-ad01-61dc972a2f93'
+    if (body.clientId && body.clientId !== expectedClientId) {
+      console.log('[WEBHOOK] Client ID invalido:', body.clientId)
+      return NextResponse.json({ success: false, error: 'Client ID invalido' }, { status: 403 })
+    }
+    
     const { event, resource } = body
     
     // Verifica se e um evento de pagamento
