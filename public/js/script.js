@@ -212,7 +212,23 @@ function renderCart() {
     // Update summary
     const subtotal = getCartTotal();
     const shipping = subtotal > 200 ? 0 : 25;
-    const total = subtotal + shipping;
+    
+    // Check for applied coupon
+    const appliedCoupon = typeof window.getAppliedCoupon === 'function' ? window.getAppliedCoupon() : null;
+    let discount = 0;
+    let discountHtml = '';
+    
+    if (appliedCoupon) {
+        discount = subtotal * (appliedCoupon.discount / 100);
+        discountHtml = `
+            <div class="summary-row discount-row">
+                <span>Desconto (${appliedCoupon.code})</span>
+                <span>- R$ ${discount.toFixed(2)}</span>
+            </div>
+        `;
+    }
+    
+    const total = subtotal - discount + shipping;
     
     const summaryContent = document.getElementById('summary-content');
     if (summaryContent) {
@@ -221,9 +237,10 @@ function renderCart() {
                 <span>Subtotal</span>
                 <span>R$ ${subtotal.toFixed(2)}</span>
             </div>
+            ${discountHtml}
             <div class="summary-row">
                 <span>Frete</span>
-                <span>${shipping === 0 ? 'Grátis' : `R$ ${shipping.toFixed(2)}`}</span>
+                <span>${shipping === 0 ? 'Gratis' : `R$ ${shipping.toFixed(2)}`}</span>
             </div>
             <div class="summary-row total">
                 <span>Total</span>
@@ -441,7 +458,18 @@ async function handleCheckout(event) {
     const cartItems = JSON.parse(localStorage.getItem('razorCart')) || [];
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const shipping = subtotal > 200 ? 0 : 25;
-    const total = subtotal + shipping;
+    
+    // Check for applied coupon
+    const appliedCoupon = typeof window.getAppliedCoupon === 'function' ? window.getAppliedCoupon() : null;
+    let discount = 0;
+    let couponInfo = 'Nenhum cupom aplicado';
+    
+    if (appliedCoupon) {
+        discount = subtotal * (appliedCoupon.discount / 100);
+        couponInfo = `${appliedCoupon.code} (-${appliedCoupon.discount}% = -R$ ${discount.toFixed(2)})`;
+    }
+    
+    const total = subtotal - discount + shipping;
     
     // Generate order ID
     const orderId = 'RZR-' + Date.now().toString(36).toUpperCase();
@@ -472,7 +500,7 @@ const orderEmbed = {
   inline: true
   },
   {
-  name: '���� Frete',
+  name: '����� Frete',
   value: shipping === 0 ? 'Gratis' : `R$ ${shipping.toFixed(2)}`,
   inline: true
   },
@@ -501,12 +529,17 @@ const orderEmbed = {
   value: addressStr,
   inline: false
   },
-  {
-  name: '📦 Itens do Pedido',
-  value: itemsList || 'Nenhum item',
-  inline: false
-  }
-  ],
+{
+	  name: '🏷️ Cupom de Desconto',
+	  value: couponInfo,
+	  inline: true
+	  },
+	  {
+	  name: '📦 Itens do Pedido',
+	  value: itemsList || 'Nenhum item',
+	  inline: false
+	  }
+	  ],
   footer: {
   text: 'RAZOR Shop - Sistema de Pedidos'
   },
@@ -523,6 +556,8 @@ const orderEmbed = {
             customer: customerData,
             items: cartItems,
             subtotal: subtotal,
+            discount: discount,
+            coupon: appliedCoupon ? appliedCoupon.code : null,
             shipping: shipping,
             total: total,
             timestamp: new Date().toISOString()

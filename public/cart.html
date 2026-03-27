@@ -104,6 +104,17 @@
                         <!-- Summary will be rendered by JavaScript -->
                     </div>
                     
+                    <!-- Coupon Section -->
+                    <div class="coupon-section">
+                        <h4 style="color: var(--color-white); margin-bottom: 12px; font-family: var(--font-display); font-size: 14px;">Cupom de Desconto</h4>
+                        <div class="coupon-input-wrapper">
+                            <input type="text" id="coupon-input" placeholder="Digite o cupom" class="coupon-input">
+                            <button type="button" onclick="applyCoupon()" class="coupon-btn">Aplicar</button>
+                        </div>
+                        <div id="coupon-message" class="coupon-message"></div>
+                        <p class="coupon-hint">Membro RAZOR CLUB? Use o cupom <strong>RAZORCLUB10</strong></p>
+                    </div>
+                    
                     <!-- Checkout Form -->
                     <div class="checkout-form-wrapper">
                         <h4 style="color: var(--color-white); margin: 30px 0 20px; font-family: var(--font-display); font-size: 18px; border-top: 1px solid var(--color-gray); padding-top: 30px;">Dados para Entrega</h4>
@@ -271,6 +282,133 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
+
+        /* Coupon Styles */
+        .coupon-section {
+            margin: 20px 0;
+            padding: 16px;
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .coupon-input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        .coupon-input {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--color-gray);
+            border: 1px solid var(--color-light-gray);
+            border-radius: 4px;
+            color: var(--color-white);
+            font-family: var(--font-primary);
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .coupon-input:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+
+        .coupon-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            font-weight: 600;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .coupon-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .coupon-message {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .coupon-message.success {
+            color: #4ade80;
+        }
+
+        .coupon-message.error {
+            color: #f87171;
+        }
+
+        .coupon-hint {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--color-text-muted);
+        }
+
+        .coupon-hint strong {
+            color: #FFD700;
+        }
+
+        .discount-row {
+            color: #4ade80 !important;
+        }
     </style>
+
+    <script>
+        // Coupon System
+        let appliedCoupon = null;
+        const VALID_COUPONS = {
+            'RAZORCLUB10': { discount: 10, description: 'RAZOR CLUB - 10% OFF' }
+        };
+
+        function applyCoupon() {
+            const input = document.getElementById('coupon-input');
+            const message = document.getElementById('coupon-message');
+            const code = input.value.trim().toUpperCase();
+
+            if (!code) {
+                message.textContent = 'Digite um cupom';
+                message.className = 'coupon-message error';
+                return;
+            }
+
+            if (VALID_COUPONS[code]) {
+                appliedCoupon = { code, ...VALID_COUPONS[code] };
+                message.textContent = 'Cupom aplicado! ' + appliedCoupon.description;
+                message.className = 'coupon-message success';
+                input.disabled = true;
+                updateCartSummary();
+            } else {
+                message.textContent = 'Cupom invalido';
+                message.className = 'coupon-message error';
+                appliedCoupon = null;
+            }
+        }
+
+        function removeCoupon() {
+            appliedCoupon = null;
+            const input = document.getElementById('coupon-input');
+            const message = document.getElementById('coupon-message');
+            input.disabled = false;
+            input.value = '';
+            message.textContent = '';
+            updateCartSummary();
+        }
+
+        function updateCartSummary() {
+            // Trigger cart update if function exists
+            if (typeof renderCart === 'function') {
+                renderCart();
+            }
+        }
+
+        // Store appliedCoupon in sessionStorage
+        window.getAppliedCoupon = function() {
+            return appliedCoupon;
+        };
+    </script>
 </body>
 </html>
