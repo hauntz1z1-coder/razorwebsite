@@ -1,3 +1,66 @@
+// ===== Sound Effects System =====
+const optionSound = new Audio('/sounds/options-sound.mp3');
+optionSound.volume = 0.5;
+optionSound.preload = 'auto';
+
+function playOptionSound() {
+    // Clone the audio to allow overlapping sounds
+    const sound = optionSound.cloneNode();
+    sound.volume = 0.5;
+    sound.play().catch(() => {});
+}
+
+// Track elements that already have sound attached
+const soundAttached = new WeakSet();
+
+// Add sound effects to all interactive elements
+function initSoundEffects() {
+    // All clickable elements
+    const clickableSelectors = [
+        '.btn', 
+        'button', 
+        '.quantity-btn',
+        '.nav-list a', 
+        '.mobile-nav-list a', 
+        '.footer-links a',
+        '.social-links a',
+        '.cart-icon',
+        '.logo',
+        '.product-card', 
+        '.player-card', 
+        '.tournament-card',
+        '.hof-card',
+        '.mobile-menu-btn',
+        '[onclick]',
+        'a[href]'
+    ];
+    
+    clickableSelectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+            if (!soundAttached.has(el)) {
+                el.addEventListener('click', playOptionSound);
+                soundAttached.add(el);
+            }
+        });
+    });
+    
+    // Select elements
+    document.querySelectorAll('select').forEach(select => {
+        if (!soundAttached.has(select)) {
+            select.addEventListener('change', playOptionSound);
+            soundAttached.add(select);
+        }
+    });
+    
+    // Input focus
+    document.querySelectorAll('input, textarea').forEach(input => {
+        if (!soundAttached.has(input)) {
+            input.addEventListener('focus', playOptionSound);
+            soundAttached.add(input);
+        }
+    });
+}
+
 // ===== Mobile Menu Toggle =====
 const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
 const mobileMenu = document.querySelector('.mobile-menu');
@@ -149,7 +212,23 @@ function renderCart() {
     // Update summary
     const subtotal = getCartTotal();
     const shipping = subtotal > 200 ? 0 : 25;
-    const total = subtotal + shipping;
+    
+    // Check for applied coupon
+    const appliedCoupon = typeof window.getAppliedCoupon === 'function' ? window.getAppliedCoupon() : null;
+    let discount = 0;
+    let discountHtml = '';
+    
+    if (appliedCoupon) {
+        discount = subtotal * (appliedCoupon.discount / 100);
+        discountHtml = `
+            <div class="summary-row discount-row">
+                <span>Desconto (${appliedCoupon.code})</span>
+                <span>- R$ ${discount.toFixed(2)}</span>
+            </div>
+        `;
+    }
+    
+    const total = subtotal - discount + shipping;
     
     const summaryContent = document.getElementById('summary-content');
     if (summaryContent) {
@@ -158,9 +237,10 @@ function renderCart() {
                 <span>Subtotal</span>
                 <span>R$ ${subtotal.toFixed(2)}</span>
             </div>
+            ${discountHtml}
             <div class="summary-row">
                 <span>Frete</span>
-                <span>${shipping === 0 ? 'Grátis' : `R$ ${shipping.toFixed(2)}`}</span>
+                <span>${shipping === 0 ? 'Gratis' : `R$ ${shipping.toFixed(2)}`}</span>
             </div>
             <div class="summary-row total">
                 <span>Total</span>
@@ -259,7 +339,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // ===== Discord Webhook Configuration =====
 const DISCORD_WEBHOOKS = {
     orders: 'https://canary.discord.com/api/webhooks/1482221033653141524/_2KjX-bT8QJVgt2NTXe6h5sDgWuGa8XYB8hU1SxGqvnJRG2r6FCsS2ud27gbeKzF_hu9',
-    recruitment: 'https://canary.discord.com/api/webhooks/1482221206630301726/syVRCjsEWw-5BWdDbTwn6rf1j2gLHrR9dOfo_tg86tWOvTpkLu33njSmsNcnjxNwywjn'
+    recruitment: 'https://canary.discord.com/api/webhooks/1484414808123117680/mnXpaj9fAERU1HC-yMkxcG4MTl20WEhFGAWgFeEnnO11qPeiqZT01J_FiZ306WTX6OwT'
 };
 
 // ===== Send to Discord Webhook =====
@@ -286,6 +366,67 @@ async function sendToDiscord(webhookUrl, embed) {
     }
 }
 
+// ===== ViaCEP API Integration =====
+async function searchCEP(cep) {
+    const cleanCEP = cep.replace(/\D/g, '');
+    
+    if (cleanCEP.length !== 8) {
+        return null;
+    }
+    
+    try {
+        const response = await fetch(`https://viacep.com.br/ws/${cleanCEP}/json/`);
+        const data = await response.json();
+        
+        if (data.erro) {
+            return null;
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar CEP:', error);
+        return null;
+    }
+}
+
+async function handleCEPInput(event) {
+    const cepInput = event.target;
+    const cep = cepInput.value;
+    
+    // Format CEP
+    const cleanCEP = cep.replace(/\D/g, '');
+    if (cleanCEP.length <= 5) {
+        cepInput.value = cleanCEP;
+    } else {
+        cepInput.value = cleanCEP.slice(0, 5) + '-' + cleanCEP.slice(5, 8);
+    }
+    
+    if (cleanCEP.length === 8) {
+        const addressData = await searchCEP(cleanCEP);
+        
+        if (addressData) {
+            const streetInput = document.getElementById('checkout-street');
+            const neighborhoodInput = document.getElementById('checkout-neighborhood');
+            const cityInput = document.getElementById('checkout-city');
+            const stateInput = document.getElementById('checkout-state');
+            
+            if (streetInput) streetInput.value = addressData.logradouro || '';
+            if (neighborhoodInput) neighborhoodInput.value = addressData.bairro || '';
+            if (cityInput) cityInput.value = addressData.localidade || '';
+            if (stateInput) stateInput.value = addressData.uf || '';
+            
+            // Focus on number field
+            const numberInput = document.getElementById('checkout-number');
+            if (numberInput) numberInput.focus();
+            
+            playOptionSound();
+            showNotification('Endereco encontrado!');
+        } else {
+            showNotification('CEP nao encontrado. Preencha manualmente.');
+        }
+    }
+}
+
 // ===== Handle Checkout Form Submission =====
 async function handleCheckout(event) {
     event.preventDefault();
@@ -303,14 +444,32 @@ async function handleCheckout(event) {
         name: document.getElementById('checkout-name').value,
         email: document.getElementById('checkout-email').value,
         whatsapp: document.getElementById('checkout-whatsapp').value,
-        cpf: document.getElementById('checkout-cpf').value
+        cpf: document.getElementById('checkout-cpf').value,
+        cep: document.getElementById('checkout-cep')?.value || '',
+        street: document.getElementById('checkout-street')?.value || '',
+        number: document.getElementById('checkout-number')?.value || '',
+        complement: document.getElementById('checkout-complement')?.value || '',
+        neighborhood: document.getElementById('checkout-neighborhood')?.value || '',
+        city: document.getElementById('checkout-city')?.value || '',
+        state: document.getElementById('checkout-state')?.value || ''
     };
     
     // Get cart data
     const cartItems = JSON.parse(localStorage.getItem('razorCart')) || [];
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const shipping = subtotal > 200 ? 0 : 25;
-    const total = subtotal + shipping;
+    
+    // Check for applied coupon
+    const appliedCoupon = typeof window.getAppliedCoupon === 'function' ? window.getAppliedCoupon() : null;
+    let discount = 0;
+    let couponInfo = 'Nenhum cupom aplicado';
+    
+    if (appliedCoupon) {
+        discount = subtotal * (appliedCoupon.discount / 100);
+        couponInfo = `${appliedCoupon.code} (-${appliedCoupon.discount}% = -R$ ${discount.toFixed(2)})`;
+    }
+    
+    const total = subtotal - discount + shipping;
     
     // Generate order ID
     const orderId = 'RZR-' + Date.now().toString(36).toUpperCase();
@@ -320,57 +479,72 @@ async function handleCheckout(event) {
         `- ${item.name} x${item.quantity} - R$ ${(item.price * item.quantity).toFixed(2)}`
     ).join('\n');
     
-    // Create Discord embed for order
-    const orderEmbed = {
-        title: '🛒 Novo Pedido Recebido!',
-        color: 0x44ff00, // Green color
-        fields: [
-            {
-                name: '📋 Pedido',
-                value: `\`${orderId}\``,
-                inline: true
-            },
-            {
-                name: '💰 Total',
-                value: `R$ ${total.toFixed(2)}`,
-                inline: true
-            },
-            {
-                name: '🚚 Frete',
-                value: shipping === 0 ? 'Gratis' : `R$ ${shipping.toFixed(2)}`,
-                inline: true
-            },
-            {
-                name: '👤 Cliente',
-                value: customerData.name,
-                inline: true
-            },
-            {
-                name: '📧 E-mail',
-                value: customerData.email,
-                inline: true
-            },
-            {
-                name: '📱 WhatsApp',
-                value: customerData.whatsapp,
-                inline: true
-            },
-            {
-                name: '🪪 CPF',
-                value: customerData.cpf,
-                inline: true
-            },
-            {
-                name: '📦 Itens do Pedido',
-                value: itemsList || 'Nenhum item',
-                inline: false
-            }
-        ],
-        footer: {
-            text: 'RAZOR Shop - Sistema de Pedidos'
-        },
-        timestamp: new Date().toISOString()
-    };
+// Create address string
+const addressStr = customerData.street 
+    ? `${customerData.street}, ${customerData.number}${customerData.complement ? ' - ' + customerData.complement : ''}\n${customerData.neighborhood} - ${customerData.city}/${customerData.state}\nCEP: ${customerData.cep}`
+    : 'Nao informado';
+
+// Create Discord embed for order
+const orderEmbed = {
+  title: '🛒 Novo Pedido Recebido!',
+  color: 0x44ff00, // Green color
+  fields: [
+  {
+  name: '📋 Pedido',
+  value: `\`${orderId}\``,
+  inline: true
+  },
+  {
+  name: '💰 Total',
+  value: `R$ ${total.toFixed(2)}`,
+  inline: true
+  },
+  {
+  name: '����� Frete',
+  value: shipping === 0 ? 'Gratis' : `R$ ${shipping.toFixed(2)}`,
+  inline: true
+  },
+  {
+  name: '👤 Cliente',
+  value: customerData.name,
+  inline: true
+  },
+  {
+  name: '📧 E-mail',
+  value: customerData.email,
+  inline: true
+  },
+  {
+  name: '📱 WhatsApp',
+  value: customerData.whatsapp,
+  inline: true
+  },
+  {
+  name: '🪪 CPF',
+  value: customerData.cpf,
+  inline: true
+  },
+  {
+  name: '📍 Endereco de Entrega',
+  value: addressStr,
+  inline: false
+  },
+{
+	  name: '🏷️ Cupom de Desconto',
+	  value: couponInfo,
+	  inline: true
+	  },
+	  {
+	  name: '📦 Itens do Pedido',
+	  value: itemsList || 'Nenhum item',
+	  inline: false
+	  }
+	  ],
+  footer: {
+  text: 'RAZOR Shop - Sistema de Pedidos'
+  },
+  timestamp: new Date().toISOString()
+  };
     
     // Send to Discord
     const success = await sendToDiscord(DISCORD_WEBHOOKS.orders, orderEmbed);
@@ -382,6 +556,8 @@ async function handleCheckout(event) {
             customer: customerData,
             items: cartItems,
             subtotal: subtotal,
+            discount: discount,
+            coupon: appliedCoupon ? appliedCoupon.code : null,
             shipping: shipping,
             total: total,
             timestamp: new Date().toISOString()
@@ -416,6 +592,7 @@ async function handleJoinSubmit(event) {
     
     // Get form data
     const formData = {
+        role: document.querySelector('input[name="role"]:checked').value,
         nickname: document.getElementById('nickname').value,
         discord: document.getElementById('discord').value,
         age: document.getElementById('age').value,
@@ -429,11 +606,21 @@ async function handleJoinSubmit(event) {
     const regionSelect = document.getElementById('region');
     const regionName = regionSelect.options[regionSelect.selectedIndex].text;
     
+    // Get role display name
+    const roleDisplay = formData.role === 'player' ? 'PLAYER' : 'STAFF';
+    const roleEmoji = formData.role === 'player' ? '🎮' : '👥';
+    const embedColor = formData.role === 'player' ? 0x44ff00 : 0xffa500; // Green for player, Orange for staff
+    
     // Create Discord embed for recruitment
     const recruitEmbed = {
-        title: '📝 Nova Inscricao de Recrutamento!',
-        color: 0x44ff00, // Green color
+        title: `📝 Nova Inscricao - ${roleDisplay}!`,
+        color: embedColor,
         fields: [
+            {
+                name: `${roleEmoji} Tipo de Inscricao`,
+                value: `**${roleDisplay}**`,
+                inline: false
+            },
             {
                 name: '🎮 Nickname',
                 value: formData.nickname,
@@ -494,4 +681,12 @@ async function handleJoinSubmit(event) {
 document.addEventListener('DOMContentLoaded', () => {
     updateCartCount();
     renderCart();
+    initSoundEffects();
 });
+
+// Re-initialize sound effects when content changes dynamically
+const observer = new MutationObserver(() => {
+    initSoundEffects();
+});
+
+observer.observe(document.body, { childList: true, subtree: true });
