@@ -203,12 +203,20 @@
                         
                         <div class="form-group">
                             <label for="modo">Modo que deseja participar *</label>
-                            <select id="modo" name="modo" required>
+                            <select id="modo" name="modo" required onchange="toggleTeamNicknames()">
                                 <option value="">Selecione o modo</option>
                                 <option value="solo">Solo</option>
                                 <option value="duo">Duo</option>
+                                <option value="trio">Trio</option>
                                 <option value="squad">Squad</option>
                             </select>
+                        </div>
+                        
+                        <!-- Nicknames dos Parceiros (aparece apenas para Duo, Trio, Squad) -->
+                        <div id="team-nicknames" class="team-nicknames-section" style="display: none;">
+                            <div class="form-section-title">Nicknames dos Parceiros</div>
+                            <p style="color: var(--color-text-muted); font-size: 13px; margin-bottom: 15px;">Informe o nickname Epic Games de cada parceiro da sua equipe.</p>
+                            <div id="team-nicknames-inputs"></div>
                         </div>
                         
                         <!-- Experiencia Competitiva -->
@@ -480,6 +488,18 @@
             color: var(--color-text-muted);
         }
 
+        .team-nicknames-section {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .team-nicknames-section .form-section-title {
+            margin-top: 0;
+        }
+
         @media (max-width: 768px) {
             .tournaments-mini-grid {
                 grid-template-columns: 1fr;
@@ -490,6 +510,41 @@
     <script>
         // Discord Webhook URL para inscricoes de torneio
         const TOURNAMENT_DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1482221206630301726/syVRCjsEWw-5BWdDbTwn6rf1j2gLHrR9dOfo_tg86tWOvTpkLu33njSmsNcnjxNwywjn';
+
+        // Funcao para mostrar/ocultar campos de nicknames dos parceiros
+        function toggleTeamNicknames() {
+            const modo = document.getElementById('modo').value;
+            const section = document.getElementById('team-nicknames');
+            const inputsContainer = document.getElementById('team-nicknames-inputs');
+            
+            // Numero de parceiros por modo
+            const teamSizes = {
+                'solo': 0,
+                'duo': 1,
+                'trio': 2,
+                'squad': 3
+            };
+            
+            const numPartners = teamSizes[modo] || 0;
+            
+            if (numPartners > 0) {
+                section.style.display = 'block';
+                inputsContainer.innerHTML = '';
+                
+                for (let i = 1; i <= numPartners; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'form-group';
+                    div.innerHTML = `
+                        <label for="parceiro-${i}">Nickname do Parceiro ${i} (Epic Games) *</label>
+                        <input type="text" id="parceiro-${i}" name="parceiro-${i}" required placeholder="Ex: NickDoJogador">
+                    `;
+                    inputsContainer.appendChild(div);
+                }
+            } else {
+                section.style.display = 'none';
+                inputsContainer.innerHTML = '';
+            }
+        }
 
         async function handleTournamentSubmit(event) {
             event.preventDefault();
@@ -515,6 +570,7 @@
             submitBtn.disabled = true;
             
             // Collect form data
+            const modo = form.querySelector('#modo').value;
             const formData = {
                 torneio: tournamentNames[tournamentInput.value] || tournamentInput.value,
                 nickFortnite: form.querySelector('#nick-fortnite').value,
@@ -523,7 +579,7 @@
                 regiao: form.querySelector('#regiao').value,
                 plataforma: form.querySelector('#plataforma').value,
                 estiloJogo: form.querySelector('#estilo-jogo').value,
-                modo: form.querySelector('#modo').value,
+                modo: modo,
                 experiencia: form.querySelector('#experiencia').value,
                 experienciaDesc: form.querySelector('#experiencia-desc').value || 'Nao informado',
                 kd: form.querySelector('#kd').value,
@@ -532,6 +588,20 @@
                 discordMember: form.querySelector('#discord-member').value,
                 discordNick: form.querySelector('#discord-nick').value
             };
+            
+            // Coletar nicknames dos parceiros
+            const teamSizes = { 'solo': 0, 'duo': 1, 'trio': 2, 'squad': 3 };
+            const numPartners = teamSizes[modo] || 0;
+            const parceiros = [];
+            
+            for (let i = 1; i <= numPartners; i++) {
+                const parceiro = form.querySelector(`#parceiro-${i}`);
+                if (parceiro && parceiro.value) {
+                    parceiros.push(`Parceiro ${i}: ${parceiro.value}`);
+                }
+            }
+            
+            formData.parceiros = parceiros.length > 0 ? parceiros.join('\n') : 'N/A (Solo)';
             
             // Create Discord embed
             const embed = {
@@ -553,6 +623,7 @@
                         { name: '💰 Earnings', value: formData.earnings, inline: true },
                         { name: '💬 Discord', value: formData.discordNick, inline: true },
                         { name: '✅ Membro Discord', value: formData.discordMember, inline: true },
+                        { name: '👥 Parceiros de Equipe', value: formData.parceiros, inline: false },
                         { name: '📝 Experiencia Detalhada', value: formData.experienciaDesc, inline: false }
                     ],
                     footer: {
